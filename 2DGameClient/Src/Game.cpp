@@ -1,4 +1,8 @@
 #include "Game.h"
+#include <algorithm>
+#include "Actor.h"
+
+
 
 Game::Game()
     :mIsRunning(true)
@@ -31,6 +35,21 @@ bool Game::Init()
 		return false;
 	}
     return true;
+}
+
+
+void Game::LoadData()
+{
+	//TODO : 다양한 액터를 만들어 로드해본다.
+}
+
+void Game::UnloadData()
+{
+	// actor 소멸자에서 actor 객체를 모두 지우지 못했을 경우를 대비
+	while (!mActors.empty())
+	{
+		delete mActors.back();
+	}
 }
 
 void Game::RunLoop()
@@ -81,7 +100,36 @@ void Game::UpdateGame()
 		deltaTime = 0.05f;
 	}
 
-	//TODO:델타 시간의 값으로 게임세계 업데이트
+	//델타 시간의 값으로 이번 프레임 게임세계 업데이트
+	mIsUpdatingActors = true;
+	for (auto actor : mActors)
+	{
+		actor->Update(deltaTime);
+	}
+	mIsUpdatingActors = false;
+
+	//이번 프레임에 업데이트 되지 않은 Actor들을 mActors에 추가
+	for (auto pending : mPendingActors)
+	{
+		mActors.emplace_back(pending);
+	}
+	mPendingActors.clear();
+
+
+	std::vector<Actor*> deadActors;
+	for (auto actor : mActors)
+	{
+		if (actor->GetState() == Actor::State::EDead)
+		{
+			deadActors.emplace_back(actor);
+		}
+	}
+
+
+	for (auto actor : deadActors)
+	{
+		delete actor;
+	}
 
 	
 }
@@ -108,4 +156,39 @@ void Game::Shutdown()
 	SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
+}
+
+void Game::AddActor(Actor* actor)
+{
+	//Actor 업데이트 중이라면, 임시Actor Vector에 Pending
+	if (mIsUpdatingActors)
+	{
+		mPendingActors.emplace_back(actor);
+	}
+	else
+	{
+		mActors.emplace_back(actor);
+	}
+}
+
+void Game::RemoveActor(Actor* actor)
+{
+	//actor 객체가 delete될 때, ~Actor()에 의해 호출
+	//actor pending vector와 실제actor vector 모두에 있다면 지워준다.  
+
+	auto iter = std::find(mPendingActors.begin(), mPendingActors.end(), actor);
+	if (iter != mPendingActors.end())
+	{
+		//TODO : swap 후 pop_back의 이유는 ? -> stl공부하면서 찾아볼것
+		std::iter_swap(iter, mPendingActors.end() - 1);
+		mPendingActors.pop_back();
+	}
+
+
+	iter = std::find(mActors.begin(), mActors.end(), actor);
+	if (iter != mActors.end())
+	{
+		std::iter_swap(iter, mActors.end() - 1);
+		mActors.pop_back();
+	}
 }
