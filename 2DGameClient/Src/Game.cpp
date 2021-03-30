@@ -1,12 +1,18 @@
 #include "Game.h"
+#include "Input.h"
 #include <algorithm>
 #include "Actor.h"
+#include "Player.h"
+#include <SDL_image.h>
+#include "SpriteComponent.h"
 
 
 
 Game::Game()
     :mIsRunning(true)
     ,mWindow(nullptr)
+	, mRenderer(nullptr)
+	, mIsUpdatingActors(false)
 {
 }
 
@@ -20,7 +26,7 @@ bool Game::Init()
 	}
 
 	// SDL 윈도우 생성
-	mWindow = SDL_CreateWindow("2d Game Client", 100, 100, 1024, 768, 0);
+	mWindow = SDL_CreateWindow("2d Game Client", 30, 30, 1024, 768, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -34,13 +40,45 @@ bool Game::Init()
 		SDL_Log("Failed to create renderer: %s", SDL_GetError());
 		return false;
 	}
+
+	//PNG를 지원하는 SDL Image 초기화
+	if (IMG_Init(IMG_INIT_PNG) == 0)
+	{
+		SDL_Log("Unable to initialize SDL_image: %s", SDL_GetError());
+		return false;
+	}
+
+	mInput = new Input();
+	if (!mInput->Init())
+	{
+		SDL_Log("Failed to initialize input system");
+		return false;
+	}
+
+	LoadData();
+
+	mTicksCount = SDL_GetTicks();
+
     return true;
 }
 
 
 void Game::LoadData()
 {
-	//TODO : 다양한 액터를 만들어 로드해본다.
+	//TODO : 다양한 액터를 만들고 각 액터에 컴포넌트를 추가해본다.
+	Actor* bgActor = new Actor(this);
+	bgActor->SetPosition(Vector2(512.f, 384.f));
+	
+	SpriteComponent* bgComponent = new SpriteComponent(bgActor, 10);
+
+	bgComponent->SetTexture(GetTexture("Assets/bg.png"));
+
+	Player* p = new Player(this);
+	p->SetPosition(Vector2(100.0f, 384.0f));
+	p->SetScale(1.5f);
+
+
+
 }
 
 void Game::UnloadData()
@@ -66,6 +104,8 @@ void Game::RunLoop()
 
 void Game::ProcessInput()
 {
+	mInput->PrepareForUpdate();
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -77,11 +117,21 @@ void Game::ProcessInput()
 		}
 	}
 
-	const Uint8* keyState = SDL_GetKeyboardState(NULL);
-	if (keyState[SDL_SCANCODE_ESCAPE])
+	KeyboardState keyState = mInput->GetKeyboardState();
+
+	if (keyState.GetKeyState(SDL_SCANCODE_ESCAPE)
+		== EReleased)
 	{
 		mIsRunning = false;
 	}
+
+
+	mIsUpdatingActors = true;
+	for (auto actor : mActors)
+	{
+		actor->ProcessInput(keyState);
+	}
+	mIsUpdatingActors = false;
 }
 
 void Game::UpdateGame()
@@ -143,7 +193,10 @@ void Game::GenerateOutput()
 	SDL_RenderClear(mRenderer);
 
 	//TODO:그리기
-
+	for (auto sprite : mSprites)
+	{
+		sprite->Draw(mRenderer);
+	}
 
 	
 	//전면버퍼(디스플레이)와 후면버퍼 교체
@@ -153,6 +206,8 @@ void Game::GenerateOutput()
 
 void Game::Shutdown()
 {
+	UnloadData();
+	IMG_Quit();
 	SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
@@ -191,4 +246,64 @@ void Game::RemoveActor(Actor* actor)
 		std::iter_swap(iter, mActors.end() - 1);
 		mActors.pop_back();
 	}
+}
+
+void Game::AddSprite(SpriteComponent* sprite)
+{
+	//그리기 순서에 맞춰 sprite vector에 자동정렬
+	int myDrawOrder = sprite->GetDrawOrder();
+	auto iter = mSprites.begin();
+	for (;
+		iter != mSprites.end();
+		++iter)
+	{
+		if (myDrawOrder < (*iter)->GetDrawOrder())
+		{
+			break;
+		}
+	}
+
+	mSprites.insert(iter, sprite);
+}
+
+void Game::RemoveSprite(SpriteComponent* sprite)
+{
+	auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
+	mSprites.erase(iter);
+}
+
+SDL_Texture* Game::GetTexture(const std::string& fileName)
+{
+	SDL_Texture* tex = nullptr;
+
+	auto iter = mTextures.find(fileName);
+	if (iter != mTextures.end())
+	{
+		//texture 재활용
+		tex = iter->second;
+	}
+	else
+	{
+		SDL_Surface* surf = IMG_Load(fileName.c_str());
+		if (!surf)
+		{
+			SDL_Log("Failed to load texture file %s", fileName.c_str());
+			return nullptr;
+		}
+
+		//컬러키 적용
+		SDL_SetColorKey(surf, SDL_TRUE, SDL_MapRGB(surf->format, 255, 0, 255));
+
+
+		tex = SDL_CreateTextureFromSurface(mRenderer, surf);
+		SDL_FreeSurface(surf);
+		if (!tex)
+		{
+			SDL_Log("Failed to convert surface to texture for %s", fileName.c_str());
+			return nullptr;
+		}
+
+		mTextures.emplace(fileName.c_str(), tex);
+	}
+	return tex;
 }
