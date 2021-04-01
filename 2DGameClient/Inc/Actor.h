@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Vector2.h"
+#include "Component.h"
 
 class Actor
 {
@@ -13,6 +14,7 @@ public:
 
 	enum class MovingState
 	{
+		ENone,
 		EIdle,
 		ELeft,
 		ERight,
@@ -50,19 +52,19 @@ public:
 
 	Vector2 GetPosition() const { return mPosition; }
 	void	SetPosition(const Vector2& inPosition) { mPosition = inPosition; }
+
 	
 	Game*	GetGame() const { return mGame; }
 
 	//Component 추가 및 삭제
 	void AddComponent(class Component* inComponent);
 	void RemoveComponent(class Component* inComponent);
-
+	
 private:
 	State	mState;
 	MovingState	mMovingState;
 	Vector2 mPosition;
 	float	mScale;
-
 
 	//actor 객체가 소유한 component를 담는 변수
 	std::vector<class Component*> mComponents;

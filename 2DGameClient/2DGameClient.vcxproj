@@ -162,6 +162,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\Actor.cpp" />
     <ClCompile Include="Src\AnimationComponent.cpp" />
+    <ClCompile Include="Src\Block.cpp" />
+    <ClCompile Include="Src\Bomb.cpp" />
+    <ClCompile Include="Src\Boom.cpp" />
+    <ClCompile Include="Src\CollisionComponent.cpp" />
     <ClCompile Include="Src\Component.cpp" />
     <ClCompile Include="Src\Game.cpp" />
     <ClCompile Include="Src\Input.cpp" />
@@ -169,11 +173,17 @@
     <ClCompile Include="Src\MoveComponent.cpp" />
     <ClCompile Include="Src\Player.cpp" />
     <ClCompile Include="Src\SpriteComponent.cpp" />
+    <ClCompile Include="Src\Tile.cpp" />
+    <ClCompile Include="Src\TileMapComponent.cpp" />
     <ClCompile Include="Src\Vector2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Inc\Actor.h" />
     <ClInclude Include="Inc\AnimationComponent.h" />
+    <ClInclude Include="Inc\Block.h" />
+    <ClInclude Include="Inc\Bomb.h" />
+    <ClInclude Include="Inc\Boom.h" />
+    <ClInclude Include="Inc\CollisionComponent.h" />
     <ClInclude Include="Inc\Component.h" />
     <ClInclude Include="Inc\Game.h" />
     <ClInclude Include="Inc\Input.h" />
@@ -181,6 +191,8 @@
     <ClInclude Include="Inc\MoveComponent.h" />
     <ClInclude Include="Inc\Player.h" />
     <ClInclude Include="Inc\SpriteComponent.h" />
+    <ClInclude Include="Inc\Tile.h" />
+    <ClInclude Include="Inc\TileMapComponent.h" />
     <ClInclude Include="Inc\Vector2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

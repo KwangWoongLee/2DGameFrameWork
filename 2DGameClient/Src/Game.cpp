@@ -3,16 +3,22 @@
 #include <algorithm>
 #include "Actor.h"
 #include "Player.h"
+#include "Tile.h"
 #include <SDL_image.h>
 #include "SpriteComponent.h"
-
-
+#include "TileMapComponent.h"
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 Game::Game()
     :mIsRunning(true)
     ,mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mIsUpdatingActors(false)
+	, mMapSizeX(1024/32)
+	, mMapSizeY(768/32)
 {
 }
 
@@ -68,16 +74,28 @@ void Game::LoadData()
 	//TODO : 다양한 액터를 만들고 각 액터에 컴포넌트를 추가해본다.
 	Actor* bgActor = new Actor(this);
 	bgActor->SetPosition(Vector2(512.f, 384.f));
-	
-	SpriteComponent* bgComponent = new SpriteComponent(bgActor, 10);
+	bgActor->SetScale(1.0f);
 
+	SpriteComponent* bgComponent = new SpriteComponent(bgActor, 10);
 	bgComponent->SetTexture(GetTexture("Assets/bg.png"));
 
+	ReadTileMap("Assets/MapLayer1.csv");
+
+	for (int row = 0; row < mMapSizeY; ++row)
+	{
+		for (int col = 0; col < mMapSizeX; ++col)
+		{
+			if (mTileMapToInt[row][col] != -1)
+			{
+				Tile* tile = new Tile(this, mTileMapToInt[row][col]);
+				tile->SetPosition(Vector2(col * 32 + 16, row * 32 + 16));
+				AddTile(tile);
+			}
+		}
+	}
+
 	Player* p = new Player(this);
-	p->SetPosition(Vector2(100.0f, 384.0f));
-	p->SetScale(1.5f);
-
-
+	p->SetPosition(Vector2(100.0f, 100.0f));
 
 }
 
@@ -307,3 +325,66 @@ SDL_Texture* Game::GetTexture(const std::string& fileName)
 	}
 	return tex;
 }
+
+
+bool Game::ReadTileMap(const std::string& fileName)
+{
+	using namespace std;
+
+	ifstream file(fileName);
+	if (true == file.fail())
+	{
+		//파일 읽기실패 TODO:로그 예외처리
+		return false;
+	}
+
+	string cell;
+	string line;
+	while (getline(file, line))
+	{
+		vector<int> row;
+		stringstream lineStream(line);
+		while (getline(lineStream, cell, ','))
+		{
+			row.emplace_back(stoi(cell));
+		}
+
+		mTileMapToInt.emplace_back(row);
+	}
+
+	return true;
+}
+
+void Game::AddTile(Tile* tile)
+{
+	mTiles.emplace_back(tile);
+}
+
+void Game::RemoveTile(Tile* tile)
+{
+	auto iter = std::find(mTiles.begin(),
+		mTiles.end(), tile);
+	if (iter != mTiles.end())
+	{
+		mTiles.erase(iter);
+	}
+}
+
+void Game::AddBomb(Bomb* bomb)
+{
+	mBombs.emplace_back(bomb);
+}
+
+void Game::RemoveBomb(Bomb* bomb)
+{
+	auto iter = std::find(mBombs.begin(),
+		mBombs.end(), bomb);
+	if (iter != mBombs.end())
+	{
+		mBombs.erase(iter);
+	}
+}
+
+
+
+

@@ -1,0 +1,14 @@
+#pragma once
+#include "Actor.h"
+#include "CollisionComponent.h"
+
+class Block : public Actor
+{
+public:
+	Block(class Game* game,int tilenum);
+	~Block();
+
+	void UpdateActor(float deltaTime) override;
+
+};
+

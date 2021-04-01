@@ -33,6 +33,17 @@ public:
 	//이미지 파일에서 Texture로 변환
 	SDL_Texture* GetTexture(const std::string& fileName);
 
+	//tilemap 가져오기
+	bool ReadTileMap(const std::string& fileName);
+	void AddTile(class Tile* bomb);
+	void RemoveTile(class Tile* bomb);
+	std::vector<class Tile*>& GetTiles() { return mTiles; }
+
+	void AddBomb(class Bomb* bomb);
+	void RemoveBomb(class Bomb* bomb);
+	std::vector<class Bomb*>& GetBombs() { return mBombs; }
+
+
 private:
 	//게임 루프 헬퍼 함수
 	void ProcessInput();
@@ -50,6 +61,13 @@ private:
 	// Texture map  <filename, SDL_Texture*> // Texture 재활용을 위한 vector
 	std::unordered_map<std::string, SDL_Texture*> mTextures;
 
+	//타일맵
+	std::vector<Tile*> mTiles;
+	std::vector<std::vector<int>> mTileMapToInt;
+
+
+	int	mMapSizeX;
+	int mMapSizeY;
 
 	//SDL 윈도우
 	SDL_Window*	mWindow;
@@ -67,6 +85,8 @@ private:
 	
 
 
+	std::vector<Bomb*> mBombs;
+	
 
 };
 

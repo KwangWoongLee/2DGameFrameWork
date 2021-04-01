@@ -5,7 +5,7 @@
 
 Actor::Actor(Game* game)
 	:mState(State::EActive)
-	,mMovingState(MovingState::EIdle)
+	,mMovingState(MovingState::ENone)
 	, mPosition(0.f,0.f)
 	, mScale(1.0f)
 	, mGame(game)

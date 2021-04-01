@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "Game.h"
 #include "MoveComponent.h"
+#include "CollisionComponent.h"
 
 class Player : public Actor
 {
@@ -12,9 +13,11 @@ public:
 	
 	void ActorInput(const class KeyboardState& keyState) override;
 
+	Vector2 SearchBombPosition(const Vector2& ownerPos);
 
+	CollisionComponent* GetCollider() const { return mCollider; }
 
 private:
-	
+	CollisionComponent* mCollider;
 };
 

@@ -45,6 +45,24 @@
     <ClCompile Include="Src\AnimationComponent.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Bomb.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\CollisionComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TileMapComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Block.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Tile.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Boom.cpp">
+      <Filter>Actor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Inc\Component.h">
@@ -76,6 +94,24 @@
     </ClInclude>
     <ClInclude Include="Inc\AnimationComponent.h">
       <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Bomb.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\CollisionComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\TileMapComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Block.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Tile.h">
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\Boom.h">
+      <Filter>Actor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
