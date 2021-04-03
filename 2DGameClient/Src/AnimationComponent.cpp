@@ -39,8 +39,18 @@ void AnimationComponent::Update(float deltaTime)
 		mFrameX = 6;
 	}
 
+	if (mOwner->GetState() == Actor::State::EBubble)
+	{
+		mAnimTexture = mAnimTextures.find("bubble")->second;
+		mFrameX = 16;
+	}
+	else if (mOwner->GetState() == Actor::State::ETempDie)
+	{
+		mAnimTexture = mAnimTextures.find("tempdie")->second;
+		mFrameX = 13;
+	}
 
-	if (mOwner->GetMovingState() == Actor::MovingState::EStop)
+	if (mOwner->GetMovingState() == Actor::MovingState::EStop && mOwner->GetState() == Actor::State::EActive)
 	{
 		mCurrFrame = 0.f;
 	}

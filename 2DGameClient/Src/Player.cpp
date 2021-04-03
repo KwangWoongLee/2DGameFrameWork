@@ -8,8 +8,9 @@
 
 Player::Player(Game* game)
 	:Actor(game)
+	, mDeathTimer(0.f)
 {
-	SetScale(0.7f);
+	SetScale(0.5f);
 
 	AnimationComponent* asc = new AnimationComponent(this,200);
 
@@ -18,19 +19,23 @@ Player::Player(Game* game)
 	SDL_Texture* left = game->GetTexture("Assets/left.bmp");
 	SDL_Texture* right = game->GetTexture("Assets/right.bmp");
 	SDL_Texture* up = game->GetTexture("Assets/up.bmp");
+	SDL_Texture* bubble = game->GetTexture("Assets/bazziBubble.bmp");
+	SDL_Texture* tempdie = game->GetTexture("Assets/bazziDie.bmp");
 
 	asc->AddAnimTextures("idle", idle);
 	asc->AddAnimTextures("down", down);
 	asc->AddAnimTextures("left", left);
 	asc->AddAnimTextures("right", right);
 	asc->AddAnimTextures("up", up);
+	asc->AddAnimTextures("bubble", bubble);
+	asc->AddAnimTextures("tempdie", tempdie);
 
 	asc->SetAnimTexture(down, 8);
 	SetMovingState(Actor::MovingState::EIdle);
 
 
 	InputComponent* playerInputComponent = new InputComponent(this);
-	playerInputComponent->SetMovingSpeed(30.f);
+	playerInputComponent->SetMovingSpeed(15.f);
 
 	playerInputComponent->SetForwardKey(SDL_SCANCODE_D);
 	playerInputComponent->SetBackKey(SDL_SCANCODE_A);
@@ -38,22 +43,51 @@ Player::Player(Game* game)
 	playerInputComponent->SetDownKey(SDL_SCANCODE_S);
 
 	CollisionComponent* collider = new CollisionComponent(this);
-	collider->SetHalfHeight(asc->GetTextureHeight() * GetScale());
-	collider->SetHalfWidth(asc->GetTextureWidth()/8 * GetScale());
+	collider->SetHalfHeight(asc->GetTextureHeight() * GetScale() * 0.6f);
+	collider->SetHalfWidth(asc->GetTextureWidth()/8 * GetScale() * 0.6f);
 	
 	mCollider = collider;
 
+	game->AddPlayer(this);
+
+}
+
+Player::~Player()
+{
+	GetGame()->RemovePlayer(this);
 }
 
 void Player::UpdateActor(float deltaTime)
 {
 	Actor::UpdateActor(deltaTime);
+	if (GetState() == State::EBubble)
+	{
+		mDeathTimer += deltaTime;
 
+		if (isBubbleTimeOut())
+		{
+			mDeathTimer = 0.f;
+			SetState(State::ETempDie);
+		}
+
+	}
+	else if (GetState() == State::ETempDie)
+	{
+		mDeathTimer += deltaTime;
+
+		if (isDead())
+		{
+			SetState(State::EDead);
+		}
+	}
+
+
+	//PlayerToTile Collision
 	for (auto tile : GetGame()->GetTiles())
 	{
 		float CollisionX, CollisionY;
 		//ÆøÅº°ú Ãæµ¹Çß´Ù¸é,
-		if (Intersect(*GetCollider(), *(tile->GetCollider()), &CollisionX, &CollisionY))
+		if (Intersect(*GetCollider(), *(tile->GetCollider()), &CollisionX, &CollisionY) && CollisionX >=0.1f && CollisionY >= 0.1f)
 		{
 			if (GetMovingState() == Actor::MovingState::ERight)
 			{
@@ -83,6 +117,7 @@ void Player::UpdateActor(float deltaTime)
 		}
 	}
 
+	//PlayerToBomb Collision
 	for (auto bomb : GetGame()->GetBombs())
 	{
 		float CollisionX, CollisionY;
@@ -129,7 +164,6 @@ void Player::UpdateActor(float deltaTime)
 		}
 
 	}
-	
 
 }
 
@@ -155,4 +189,10 @@ Vector2 Player::SearchBombPosition(const Vector2& ownerPos)
 	int y = static_cast<int>(fabsf(ownerPos.y) / 32) * 32 + 16;
 
 	return Vector2(x, y);
+}
+
+void Player::SetBubbleToLive()
+{
+	mDeathTimer = 0.f;
+	SetState(State::EActive);
 }

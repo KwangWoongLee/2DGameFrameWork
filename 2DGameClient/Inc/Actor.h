@@ -9,6 +9,8 @@ public:
 	enum class State
 	{
 		EActive,
+		EBubble,
+		ETempDie,
 		EDead
 	};
 

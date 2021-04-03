@@ -1,6 +1,7 @@
 #pragma once
 #include "SDL.h"
 #include "Input.h"
+#include "Tile.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -25,6 +26,7 @@ public:
 	//Actor추가 및 삭제함수
 	void AddActor(class Actor* actor);
 	void RemoveActor(class Actor* actor);
+	std::vector<class Actor*>& GetActors() { return mActors; }
 
 	//SpriteComponent 추가, 삭제
 	void AddSprite(class SpriteComponent* sprite);
@@ -36,12 +38,24 @@ public:
 	//tilemap 가져오기
 	bool ReadTileMap(const std::string& fileName);
 	void AddTile(class Tile* bomb);
-	void RemoveTile(class Tile* bomb);
+	void RemoveTile(class Tile* bomb, const Vector2& pos);
 	std::vector<class Tile*>& GetTiles() { return mTiles; }
+	std::vector<std::vector<int>>& GetTileMapToInt() { return mTileMapToInt; }
+	std::vector<std::vector<Tile::TileType>>& GetTileMapToType() { return mTileMapToType; }
+
+	//게임 구체적 내용
+	void AddPlayer(class Player* player);
+	void RemovePlayer(class Player* player);
+	std::vector<class Player*>& GetPlayers() { return mPlayers; }
 
 	void AddBomb(class Bomb* bomb);
 	void RemoveBomb(class Bomb* bomb);
 	std::vector<class Bomb*>& GetBombs() { return mBombs; }
+
+	void AddBoom(class Boom* boom);
+	void RemoveBoom(class Boom* boom);
+	std::vector<class Boom*>& GetBooms() { return mBooms; }
+
 
 
 private:
@@ -64,10 +78,16 @@ private:
 	//타일맵
 	std::vector<Tile*> mTiles;
 	std::vector<std::vector<int>> mTileMapToInt;
+	std::vector<std::vector<Tile::TileType>> mTileMapToType;
+	int GetTileSizeX() const { return mTileSizeX; }
+	int GetTileSizeY() const { return mTileSizeY; }
+	void SetTileSizeXY(int x, int y);
 
 
 	int	mMapSizeX;
 	int mMapSizeY;
+	int mTileSizeX;
+	int mTileSizeY;
 
 	//SDL 윈도우
 	SDL_Window*	mWindow;
@@ -84,8 +104,9 @@ private:
 	bool		mIsUpdatingActors;
 	
 
-
+	std::vector<Player*> mPlayers;
 	std::vector<Bomb*> mBombs;
+	std::vector<Boom*> mBooms;
 	
 
 };

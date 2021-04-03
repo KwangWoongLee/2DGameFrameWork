@@ -25,7 +25,7 @@ Actor::~Actor()
 
 void Actor::Update(float deltaTime)
 {
-	if (mState == State::EActive)
+	if (mState != State::EDead)
 	{
 		UpdateComponents(deltaTime);
 		UpdateActor(deltaTime);

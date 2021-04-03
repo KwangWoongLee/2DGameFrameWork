@@ -17,8 +17,10 @@ Game::Game()
     ,mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mIsUpdatingActors(false)
-	, mMapSizeX(1024/32)
-	, mMapSizeY(768/32)
+	, mMapSizeX(15)
+	, mMapSizeY(12)
+	, mTileSizeX(0)
+	, mTileSizeY(0)
 {
 }
 
@@ -32,7 +34,7 @@ bool Game::Init()
 	}
 
 	// SDL 윈도우 생성
-	mWindow = SDL_CreateWindow("2d Game Client", 30, 30, 1024, 768, 0);
+	mWindow = SDL_CreateWindow("2d Game Client", 30, 30, 512, 384, 0);
 	if (!mWindow)
 	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -73,13 +75,15 @@ void Game::LoadData()
 {
 	//TODO : 다양한 액터를 만들고 각 액터에 컴포넌트를 추가해본다.
 	Actor* bgActor = new Actor(this);
-	bgActor->SetPosition(Vector2(512.f, 384.f));
+	bgActor->SetPosition(Vector2(256.f, 192.f));
 	bgActor->SetScale(1.0f);
 
 	SpriteComponent* bgComponent = new SpriteComponent(bgActor, 10);
-	bgComponent->SetTexture(GetTexture("Assets/bg.png"));
+	bgComponent->SetTexture(GetTexture("Assets/bg.bmp"));
 
-	ReadTileMap("Assets/MapLayer1.csv");
+
+	ReadTileMap("Assets/MapLayer2.csv");
+	SetTileSizeXY(32, 32);
 
 	for (int row = 0; row < mMapSizeY; ++row)
 	{
@@ -88,14 +92,32 @@ void Game::LoadData()
 			if (mTileMapToInt[row][col] != -1)
 			{
 				Tile* tile = new Tile(this, mTileMapToInt[row][col]);
-				tile->SetPosition(Vector2(col * 32 + 16, row * 32 + 16));
-				AddTile(tile);
+				switch (mTileMapToInt[row][col])
+				{
+				case -1:
+					mTileMapToType[row][col] = Tile::TileType::ENone;
+					tile->SetTileType(Tile::TileType::ENone);
+					break;
+				case 3:
+				case 8:
+				case 9:
+				case 10:
+					mTileMapToType[row][col] = Tile::TileType::EBlock;
+					tile->SetTileType(Tile::TileType::EBlock);
+					break;
+				default:
+					mTileMapToType[row][col] = Tile::TileType::EBush;
+					tile->SetTileType(Tile::TileType::EBush);
+					break;
+				}
+				
+				tile->SetPosition(Vector2(col * GetTileSizeX() + GetTileSizeX() * 0.5f, row * GetTileSizeY() + GetTileSizeY() * 0.5f));
 			}
 		}
 	}
 
 	Player* p = new Player(this);
-	p->SetPosition(Vector2(100.0f, 100.0f));
+	p->SetPosition(Vector2(10.0f, 10.0f));
 
 }
 
@@ -221,6 +243,12 @@ void Game::GenerateOutput()
 	SDL_RenderPresent(mRenderer);
 }
 
+void Game::SetTileSizeXY(int x, int y)
+{
+	mTileSizeX = x;
+	mTileSizeY = y;
+}
+
 
 void Game::Shutdown()
 {
@@ -342,14 +370,34 @@ bool Game::ReadTileMap(const std::string& fileName)
 	string line;
 	while (getline(file, line))
 	{
-		vector<int> row;
+		vector<int> rowInt;
+		vector<Tile::TileType> rowType;
 		stringstream lineStream(line);
 		while (getline(lineStream, cell, ','))
 		{
-			row.emplace_back(stoi(cell));
+			int cellInt = stoi(cell);
+			Tile::TileType type;
+			rowInt.emplace_back(cellInt);
+			switch (cellInt)
+			{
+			case -1:
+				type = Tile::TileType::ENone;
+				break;
+			case 3:
+			case 8:
+			case 9:
+			case 10:
+				type = Tile::TileType::EBlock;
+				break;
+			default:
+				type = Tile::TileType::EBush;
+				break;
+			}
+			rowType.emplace_back(type);
 		}
 
-		mTileMapToInt.emplace_back(row);
+		mTileMapToInt.emplace_back(rowInt);
+		mTileMapToType.emplace_back(rowType);
 	}
 
 	return true;
@@ -360,13 +408,30 @@ void Game::AddTile(Tile* tile)
 	mTiles.emplace_back(tile);
 }
 
-void Game::RemoveTile(Tile* tile)
+void Game::RemoveTile(Tile* tile, const Vector2& pos)
 {
+	mTileMapToInt[pos.y / 32][pos.x / 32] = ENone;
+	mTileMapToType[pos.y / 32][pos.x / 32] = Tile::TileType::ENone;
 	auto iter = std::find(mTiles.begin(),
 		mTiles.end(), tile);
 	if (iter != mTiles.end())
 	{
 		mTiles.erase(iter);
+	}
+}
+
+void Game::AddPlayer(Player* player)
+{
+	mPlayers.emplace_back(player);
+}
+
+void Game::RemovePlayer(Player* player)
+{
+	auto iter = std::find(mPlayers.begin(),
+		mPlayers.end(), player);
+	if (iter != mPlayers.end())
+	{
+		mPlayers.erase(iter);
 	}
 }
 
@@ -382,6 +447,21 @@ void Game::RemoveBomb(Bomb* bomb)
 	if (iter != mBombs.end())
 	{
 		mBombs.erase(iter);
+	}
+}
+
+void Game::AddBoom(Boom* boom)
+{
+	mBooms.emplace_back(boom);
+}
+
+void Game::RemoveBoom(Boom* boom)
+{
+	auto iter = std::find(mBooms.begin(),
+		mBooms.end(), boom);
+	if (iter != mBooms.end())
+	{
+		mBooms.erase(iter);
 	}
 }
 

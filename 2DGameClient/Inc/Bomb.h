@@ -18,7 +18,8 @@ public:
 
 private:
 
-	bool	isTimeToDeath();
+	bool	isTimeToDeath() { return mDeathTimer >= 3.f; }
+	bool	isDead() { return mDeathTimer >= 1.1f; }
 	float	mDeathTimer;
 	bool	bFirstContact;
 

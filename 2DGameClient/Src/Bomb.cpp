@@ -28,6 +28,17 @@ Bomb::Bomb(Game* game)
 Bomb::~Bomb()
 {
 	GetGame()->RemoveBomb(this);
+
+	Boom* boomCenter = new Boom(GetGame(), Boom::ECenter, GetPosition());
+	boomCenter->SetPosition(GetPosition());
+
+	Boom* boomRight = new Boom(GetGame(), Boom::ERight, Vector2(GetPosition().x + 32, GetPosition().y));
+
+	Boom* boomLeft = new Boom(GetGame(), Boom::ELeft, Vector2(GetPosition().x - 32, GetPosition().y));
+
+	Boom* boomUp = new Boom(GetGame(), Boom::EUp, Vector2(GetPosition().x, GetPosition().y - 32));
+
+	Boom* boomDown = new Boom(GetGame(), Boom::EDown, Vector2(GetPosition().x, GetPosition().y + 32));
 }
 
 void Bomb::UpdateActor(float deltaTime)
@@ -37,25 +48,7 @@ void Bomb::UpdateActor(float deltaTime)
 	if (isTimeToDeath())
 	{
 		SetState(Actor::State::EDead);
-		Boom* boomCenter = new Boom(GetGame(),Boom::ECenter);
-		boomCenter->SetPosition(GetPosition());
 
-		Boom* boomRight = new Boom(GetGame(), Boom::ERight);
-		boomRight->SetPosition(Vector2(GetPosition().x + 32, GetPosition().y));
-
-		Boom* boomLeft = new Boom(GetGame(), Boom::ELeft);
-		boomLeft->SetPosition(Vector2(GetPosition().x - 32, GetPosition().y));
-
-		Boom* boomUp = new Boom(GetGame(), Boom::EUp);
-		boomUp->SetPosition(Vector2(GetPosition().x, GetPosition().y-32));
-
-		Boom* boomDown = new Boom(GetGame(), Boom::EDown);
-		boomDown->SetPosition(Vector2(GetPosition().x, GetPosition().y + 32));
 	}
 }
 
-
-bool Bomb::isTimeToDeath()
-{
-	return mDeathTimer >= 3.f;
-}
